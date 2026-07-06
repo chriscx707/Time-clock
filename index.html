@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Time Clock & Tracker</title>
+<style>
+body {
+font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+background-color: #f4f6f9;
+color: #333;
+margin: 0;
+padding: 20px;
+display: flex;
+flex-direction: column;
+align-items: center;
+}
+.container {
+max-width: 500px;
+width: 100%;
+background: white;
+padding: 25px;
+border-radius: 12px;
+box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+margin-bottom: 20px;
+}
+h2 {
+margin-top: 0;
+color: #2c3e50;
+border-bottom: 2px solid #ecf0f1;
+padding-bottom: 10px;
+}
+.digital-clock {
+font-size: 3rem;
+font-weight: bold;
+text-align: center;
+color: #2c3e50;
+margin: 20px 0;
+font-variant-numeric: tabular-nums;
+}
+.date-display {
+text-align: center;
+color: #7f8c8d;
+font-size: 1.1rem;
+margin-bottom: 20px;
+}
+.btn-grid {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 10px;
+margin-bottom: 20px;
+}
+button {
+padding: 12px;
+font-size: 1rem;
+font-weight: bold;
+border: none;
+border-radius: 6px;
+cursor: pointer;
+transition: background 0.2s;
+}
+.btn-start { background-color: #2ecc71; color: white; }
+.btn-start:hover { background-color: #27ae60; }
+.btn-stop { background-color: #e74c3c; color: white; }
+.btn-stop:hover { background-color: #c0392b; }
+.btn-reset { background-color: #95a5a6; color: white; }
+.btn-reset:hover { background-color: #7f8c8d; }
+.status-box {
+text-align: center;
+padding: 10px;
+background: #edf2f7;
+border-radius: 6px;
+font-weight: 500;
+margin-bottom: 20px;
+}
+.log-list {
+list-style: none;
+padding: 0;
+max-height: 200px;
+overflow-y: auto;
+}
+.log-list li {
+padding: 8px;
+border-bottom: 1px solid #eee;
+font-size: 0.9rem;
+display: flex;
+justify-content: space-between;
+}
+</style>
+</head>
+<body>
+
+<!-- Current Time Card -->
+<div class="container">
+<h2>Current Time</h2>
+<div id="date" class="date-display">Loading date...</div>
+<div id="clock" class="digital-clock">00:00:00</div>
+</div>
+
+<!-- Job/Shift Punch Clock -->
+<div class="container">
+<h2>Shift Punch Clock</h2>
+<div id="status" class="status-box">Status: Clocked Out</div>
+<div class="btn-grid">
+<button class="btn-start" onclick="punchIn()">Punch In</button>
+<button class="btn-stop" onclick="punchOut()">Punch Out</button>
+</div>
+<h3>Shift Log</h3>
+<ul id="punchLog" class="log-list"></ul>
+</div>
+
+<script>
+// Real-Time Clock Functionality
+function updateClock() {
+const now = new Date();
+
+// Format Time
+let hours = now.getHours();
+const minutes = String(now.getMinutes()).padStart(2, '0');
+const seconds = String(now.getSeconds()).padStart(2, '0');
+const ampm = hours >= 12 ? 'PM' : 'AM';
+hours = hours % 12;
+hours = hours ? hours : 12; // Handle midnight (0) as 12
+
+document.getElementById('clock').textContent = ${hours}:${minutes}:${seconds} ${ampm};
+
+// Format Date
+const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+document.getElementById('date').textContent = now.toLocaleDateString(undefined, options);
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// Punch Clock Logic
+let startTime = null;
+
+function punchIn() {
+if (startTime) {
+alert("You are already clocked in!");
+return;
+}
+startTime = new Date();
+document.getElementById('status').textContent = Clocked In at: ${startTime.toLocaleTimeString()}`;
+document.getElementById('status').style.background = '#e8f8f5';
+document.getElementById('status').style.color = '#27ae60';
+}
+
+function punchOut() {
+if (!startTime) {
+alert("You need to clock in first!");
+return;
+}
+const endTime = new Date();
+const elapsedMs = endTime - startTime;
+
+// Calculate Hours and Minutes worked
+const totalMinutes = Math.floor(elapsedMs / 1000 / 60);
+const hours = Math.floor(totalMinutes / 60);
+const mins = totalMinutes % 60;
+
+// Add to log
+const logList = document.getElementById('punchLog');
+const logEntry = document.createElement('li');
+
+const dateStr = startTime.toLocaleDateString(undefined, {month: 'short', day: 'numeric'});
+logEntry.innerHTML = <span&gt;&lt;strong&gt;${dateStr}</strong>: {endTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span> <span>{mins}m</span>`;
+
+logList.insertBefore(logEntry, logList.firstChild);
+
+// Reset state
+startTime = null;
+document.getElementById('status').textContent = "Status: Clocked Out";
+document.getElementById('status').style.background = '#edf2f7';
+document.getElementById('status').style.color = '#333';
+}
+</script>
+</body>
+</html>
